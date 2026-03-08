@@ -2,6 +2,9 @@ from fastapi import FastAPI
 import redis.asyncio as redis
 from database import get_product_from_db
 from cache import get_cache, set_cache
+from limiter import is_allowed
+from fastapi import Request, HTTPException
+
 
 app = FastAPI()
 
@@ -12,7 +15,18 @@ def read_root():
     return {"message": "Hello World"}
 
 @app.get("/data")
-def get_data():
+async def get_data(request: Request):
+
+    ip = request.client.host
+
+    allowed = await is_allowed(ip)
+
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests"
+        )
+
     return {"data": "This is some data"}
 
 @app.get("/test-redis")
