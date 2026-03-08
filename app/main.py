@@ -1,10 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import redis.asyncio as redis
 from database import get_product_from_db
 from cache import get_cache, set_cache
 from limiter import is_allowed
 from fastapi import Request, HTTPException
-
+from rate_limiter import sliding_window_rate_limiter
 
 app = FastAPI()
 
@@ -63,3 +63,18 @@ async def get_product(id: int):
     await r.set(f"product:{id}", str(data), ex=60)
 
     return {"source": "db", "data": data}
+
+@app.get("/limited")
+async def limited_endpoint():
+
+    allowed = await sliding_window_rate_limiter(
+        redis=r,
+        key="rate_limit:user1",
+        limit=5,
+        window=10
+    )
+
+    if not allowed:
+        raise HTTPException(status_code=429, detail="Too many requests")
+
+    return {"message": "success"}
