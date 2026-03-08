@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import redis.asyncio as redis
 from database import get_product_from_db
+from cache import get_cache, set_cache
 
 app = FastAPI()
 
@@ -22,14 +23,15 @@ async def test_redis():
 
 @app.get("/cached")
 async def cached_data():
-    cached = await r.get("mykey")
+
+    cached = await get_cache("mykey")
 
     if cached:
         return {"source": "cache", "data": cached}
 
     data = "fresh data"
 
-    await r.set("mykey", data, ex=30)
+    await set_cache("mykey", data, 30)
 
     return {"source": "db", "data": data}
 
