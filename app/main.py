@@ -8,7 +8,7 @@ from rate_limiter import sliding_window_rate_limiter
 
 app = FastAPI()
 
-r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+r = redis.Redis(host="redis", port=6379, decode_responses=True)
 
 @app.get("/")
 def read_root():
