@@ -5,6 +5,8 @@ from cache import get_cache, set_cache
 from limiter import is_allowed
 from fastapi import Request, HTTPException
 from rate_limiter import sliding_window_rate_limiter
+from fastapi import Depends
+from auth import verify_api_key
 
 app = FastAPI()
 
@@ -65,16 +67,24 @@ async def get_product(id: int):
     return {"source": "db", "data": data}
 
 @app.get("/limited")
-async def limited_endpoint():
+async def limited_api(
+    user_id: str,
+    api_key: str = Depends(verify_api_key)
+):
+
+    key = f"rate_limit:{user_id}"
 
     allowed = await sliding_window_rate_limiter(
-        redis=r,
-        key="rate_limit:user1",
+        r,
+        key,
         limit=5,
-        window=10
+        window=60
     )
 
     if not allowed:
-        raise HTTPException(status_code=429, detail="Too many requests")
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests"
+        )
 
     return {"message": "success"}
