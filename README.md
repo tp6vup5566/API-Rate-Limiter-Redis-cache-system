@@ -1,8 +1,6 @@
 # API-Rate-Limiter-Redis-cache-system
 Designed and implemented a backend service featuring JWT authentication, per-user rate limiting via Redis atomic counters, and cache-aside optimization to improve scalability and prevent overload. Containerized with Docker to simulate production-ready deployment.
 
----
-
 ## Features
 
 - FastAPI REST API
@@ -15,7 +13,6 @@ Designed and implemented a backend service featuring JWT authentication, per-use
 - Logging
 - Docker deployment
 
----
 ## Project Structure
 - app
 ├── main.py            # FastAPI app
@@ -31,8 +28,6 @@ Designed and implemented a backend service featuring JWT authentication, per-use
 Dockerfile
 docker-compose.yml
 
----
-
 ## Technologies Used
 
 - Python
@@ -40,8 +35,6 @@ docker-compose.yml
 - Redis
 - Docker
 - Uvicorn
-
----
 
 ## Purpose of This Project
 
