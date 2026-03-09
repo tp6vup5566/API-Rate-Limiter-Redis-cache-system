@@ -1,7 +1,5 @@
 import redis.asyncio as redis
-
-# Build Redis client
-r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+from app.redis_client import r
 
 
 async def get_cache(key: str):

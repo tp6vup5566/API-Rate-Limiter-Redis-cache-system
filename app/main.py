@@ -6,15 +6,12 @@ from app.cache import get_cache, set_cache
 from app.limiter import is_allowed
 from app.rate_limiter import sliding_window_rate_limiter
 from app.auth import verify_api_key
+from app.redis_client import r
 
 app = FastAPI()
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
-r = redis.Redis(
-    host=REDIS_HOST,
-    port=6379,
-    decode_responses=True
-)
+
 
 @app.get("/")
 def read_root():

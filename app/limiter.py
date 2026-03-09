@@ -1,6 +1,6 @@
 import redis.asyncio as redis
+from app.redis_client import r
 
-r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
 LIMIT = 10
 WINDOW = 60
