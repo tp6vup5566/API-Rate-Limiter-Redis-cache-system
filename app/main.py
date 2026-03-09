@@ -1,5 +1,6 @@
 import os
 from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi.responses import JSONResponse
 import redis.asyncio as redis
 from app.database import get_product_from_db
 from app.cache import get_cache, set_cache
@@ -12,24 +13,29 @@ app = FastAPI()
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello World"}
-
-@app.get("/data")
-async def get_data(request: Request):
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
 
     ip = request.client.host
 
     allowed = await is_allowed(ip)
 
     if not allowed:
-        raise HTTPException(
+        return JSONResponse(
             status_code=429,
-            detail="Too many requests"
+            content={"detail": "Too many requests"}
         )
 
+    response = await call_next(request)
+
+    return response
+
+@app.get("/")
+def read_root():
+    return {"message": "Hello World"}
+
+@app.get("/data")
+async def get_data():
     return {"data": "This is some data"}
 
 @app.get("/test-redis")
