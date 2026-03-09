@@ -3,7 +3,6 @@ import json
 import logging
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
-import redis.asyncio as redis
 from app.database import get_product_from_db
 from app.cache import get_cache, set_cache
 from app.limiter import is_allowed
@@ -20,10 +19,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
-data = json.loads(cached)
-
-REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
@@ -67,16 +62,26 @@ async def test_redis():
 @app.get("/cached")
 async def cached_data():
 
-    cached = await get_cache("mykey")
+    cached = await r.get("mykey")
 
     if cached:
-        return {"source": "cache", "data": cached}
+        data = json.loads(cached)
+        return {
+            "source": "cache",
+            "data": data
+        }
 
-    data = "fresh data"
+    data = {
+        "name": "product",
+        "price": 100
+    }
 
-    await set_cache("mykey", data, 30)
+    await r.set("mykey", json.dumps(data), ex=30)
 
-    return {"source": "db", "data": data}
+    return {
+        "source": "db",
+        "data": data
+    }
 
 @app.get("/product/{id}")
 async def get_product(id: int):
@@ -84,7 +89,7 @@ async def get_product(id: int):
     cached = await r.get(f"product:{id}")
 
     if cached:
-        return {"source": "cache", "data": cached}
+        return {"source": "cache", "data": json.loads(cached)}
 
     # DB query
     data = await get_product_from_db(id)
