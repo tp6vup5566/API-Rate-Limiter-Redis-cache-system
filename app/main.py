@@ -1,4 +1,5 @@
 import os
+import json
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 import redis.asyncio as redis
@@ -10,6 +11,7 @@ from app.auth import verify_api_key
 from app.redis_client import r
 
 app = FastAPI()
+data = json.loads(cached)
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 
@@ -69,7 +71,7 @@ async def get_product(id: int):
     # DB query
     data = await get_product_from_db(id)
 
-    await r.set(f"product:{id}", str(data), ex=60)
+    await r.set(f"product:{id}", json.dumps(data), ex=60)
 
     return {"source": "db", "data": data}
 
