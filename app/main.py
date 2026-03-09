@@ -10,6 +10,7 @@ from app.rate_limiter import sliding_window_rate_limiter
 from app.auth import verify_api_key
 from app.redis_client import r
 from app.token_bucket import token_bucket_rate_limiter
+from app.models import Product
 
 app = FastAPI()
 
@@ -83,20 +84,24 @@ async def cached_data():
         "data": data
     }
 
-@app.get("/product/{id}")
+from app.models import Product
+
+@app.get("/product/{id}", response_model=Product)
 async def get_product(id: int):
 
-    cached = await r.get(f"product:{id}")
+    key = f"product:{id}"
+
+    cached = await r.get(key)
 
     if cached:
-        return {"source": "cache", "data": json.loads(cached)}
+        return json.loads(cached)
 
     # DB query
     data = await get_product_from_db(id)
 
-    await r.set(f"product:{id}", json.dumps(data), ex=60)
+    await r.set(key, json.dumps(data), ex=60)
 
-    return {"source": "db", "data": data}
+    return data
 
 @app.get("/limited")
 async def limited_api(
