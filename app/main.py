@@ -18,6 +18,9 @@ REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
 
+    if request.url.path in ["/docs", "/openapi.json"]:
+        return await call_next(request)
+
     ip = request.client.host
 
     allowed = await is_allowed(ip)
@@ -28,9 +31,7 @@ async def rate_limit_middleware(request: Request, call_next):
             content={"detail": "Too many requests"}
         )
 
-    response = await call_next(request)
-
-    return response
+    return await call_next(request)
 
 @app.get("/")
 def read_root():
