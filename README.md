@@ -14,16 +14,16 @@ Designed and implemented a backend service featuring JWT authentication, per-use
 - Docker deployment
 
 ## Project Structure
-- app
-├── main.py            # FastAPI app
-├── auth.py            # API key verification
-├── cache.py           # Redis cache helper
-├── database.py        # mock database
-├── limiter.py         # fixed window rate limiter
-├── rate_limiter.py    # sliding window rate limiter
-├── token_bucket.py    # token bucket rate limiter
-├── redis_client.py    # Redis connection
-└── models.py          # Pydantic models
+app
+├── main.py # FastAPI app
+├── auth.py # API key verification
+├── cache.py # Redis cache helper
+├── database.py # mock database
+├── limiter.py # fixed window rate limiter
+├── rate_limiter.py # sliding window rate limiter
+├── token_bucket.py # token bucket rate limiter
+├── redis_client.py # Redis connection
+└── models.py # Pydantic models
 
 Dockerfile
 docker-compose.yml
