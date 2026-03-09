@@ -10,6 +10,7 @@ from app.limiter import is_allowed
 from app.rate_limiter import sliding_window_rate_limiter
 from app.auth import verify_api_key
 from app.redis_client import r
+from app.token_bucket import token_bucket_rate_limiter
 
 app = FastAPI()
 
@@ -105,6 +106,26 @@ async def limited_api(
         key,
         limit=5,
         window=60
+    )
+
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests"
+        )
+
+    return {"message": "success"}
+
+@app.get("/token-limited")
+async def token_limited(user_id: str):
+
+    key = f"token_bucket:{user_id}"
+
+    allowed = await token_bucket_rate_limiter(
+        r,
+        key,
+        capacity=5,
+        refill_rate=1
     )
 
     if not allowed:
