@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 import redis.asyncio as redis
@@ -11,12 +12,22 @@ from app.auth import verify_api_key
 from app.redis_client import r
 
 app = FastAPI()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
 data = json.loads(cached)
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
+
+    logger.info(f"Incoming request: {request.method} {request.url}")
 
     if request.url.path in ["/docs", "/openapi.json"]:
         return await call_next(request)
@@ -26,12 +37,17 @@ async def rate_limit_middleware(request: Request, call_next):
     allowed = await is_allowed(ip)
 
     if not allowed:
+        logger.warning(f"Rate limit exceeded for IP {ip}")
         return JSONResponse(
             status_code=429,
             content={"detail": "Too many requests"}
         )
 
-    return await call_next(request)
+    response = await call_next(request)
+
+    logger.info(f"Response status: {response.status_code}")
+
+    return response
 
 @app.get("/")
 def read_root():

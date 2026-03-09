@@ -1,7 +1,11 @@
 import asyncio
+import logging
+logger = logging.getLogger(__name__)
 
 async def get_product_from_db(product_id: int):
-    # simulate DB latency
+
+    logger.info(f"Querying database for product {product_id}")
+
     await asyncio.sleep(2)
 
     return {
